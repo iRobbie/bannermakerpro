@@ -193,47 +193,55 @@ const CanvasPreview = forwardRef(({
 
     const canvas = canvasInstanceRef.current;
     
-    // Remove existing text objects
-    const objects = canvas.getObjects();
-    objects.forEach(obj => {
-      if (obj.type === 'text' || obj.type === 'textbox') {
-        canvas.remove(obj);
-      }
-    });
-
-    // Add text overlays
-    textOverlays.forEach((overlay) => {
-      const textObj = new Textbox(overlay.text, {
-        left: overlay.position?.x || 50,
-        top: overlay.position?.y || 50,
-        fontFamily: overlay.style.fontFamily,
-        fontSize: overlay.style.fontSize,
-        fill: overlay.style.color,
-        fontWeight: overlay.style.fontWeight,
-        fontStyle: overlay.style.fontStyle,
-        textAlign: overlay.style.textAlign,
-        backgroundColor: overlay.style.backgroundColor === 'transparent' ? '' : overlay.style.backgroundColor,
-        width: 200,
-        selectable: true,
-        hasControls: true,
-        hasBorders: true,
-        cornerStyle: 'circle',
-        cornerColor: '#10b981',
-        borderColor: '#10b981',
-        transparentCorners: false
+    try {
+      // Remove existing text objects
+      const objects = canvas.getObjects();
+      objects.forEach(obj => {
+        if (obj.type === 'text' || obj.type === 'textbox') {
+          canvas.remove(obj);
+        }
       });
 
-      canvas.add(textObj);
-    });
+      // Add text overlays
+      textOverlays.forEach((overlay) => {
+        const textObj = new Textbox(overlay.text, {
+          left: overlay.position?.x || 50,
+          top: overlay.position?.y || 50,
+          fontFamily: overlay.style?.fontFamily || 'Arial',
+          fontSize: overlay.style?.fontSize || 24,
+          fill: overlay.style?.color || '#000000',
+          fontWeight: overlay.style?.fontWeight || 'normal',
+          fontStyle: overlay.style?.fontStyle || 'normal',
+          textAlign: overlay.style?.textAlign || 'left',
+          backgroundColor: overlay.style?.backgroundColor === 'transparent' ? '' : (overlay.style?.backgroundColor || ''),
+          width: 200,
+          selectable: true,
+          hasControls: true,
+          hasBorders: true,
+          cornerStyle: 'circle',
+          cornerColor: '#10b981',
+          borderColor: '#10b981',
+          transparentCorners: false
+        });
 
-    canvas.renderAll();
+        canvas.add(textObj);
+      });
+
+      canvas.renderAll();
+    } catch (error) {
+      console.error('Error updating text overlays:', error);
+    }
   }, [textOverlays]);
 
   // Update zoom level
   useEffect(() => {
     if (canvasInstanceRef.current) {
-      canvasInstanceRef.current.setZoom(zoomLevel);
-      canvasInstanceRef.current.renderAll();
+      try {
+        canvasInstanceRef.current.setZoom(zoomLevel);
+        canvasInstanceRef.current.renderAll();
+      } catch (error) {
+        console.error('Error setting zoom:', error);
+      }
     }
   }, [zoomLevel]);
 
