@@ -4,7 +4,11 @@ from typing import Tuple, Optional
 from pathlib import Path
 import uuid
 from datetime import datetime
-import magic
+try:
+    import magic
+    HAS_MAGIC = True
+except ImportError:
+    HAS_MAGIC = False
 
 # File storage directory
 UPLOAD_DIR = Path("/app/backend/uploads")
@@ -101,12 +105,32 @@ class FileManager:
         """Get file information"""
         try:
             stat = file_path.stat()
-            return {
+            info = {
                 'size': stat.st_size,
                 'created': datetime.fromtimestamp(stat.st_ctime),
                 'modified': datetime.fromtimestamp(stat.st_mtime),
-                'content_type': magic.from_file(str(file_path), mime=True)
             }
+            
+            # Add content type if magic is available
+            if HAS_MAGIC:
+                try:
+                    info['content_type'] = magic.from_file(str(file_path), mime=True)
+                except:
+                    info['content_type'] = 'application/octet-stream'
+            else:
+                # Fallback content type detection
+                suffix = file_path.suffix.lower()
+                content_type_map = {
+                    '.png': 'image/png',
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.webp': 'image/webp',
+                    '.gif': 'image/gif',
+                    '.bmp': 'image/bmp'
+                }
+                info['content_type'] = content_type_map.get(suffix, 'application/octet-stream')
+            
+            return info
         except Exception:
             return {}
     
