@@ -268,7 +268,19 @@ const BannerMaker = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-gray-900">Banner Maker</h1>
-            <Badge variant="secondary">MVP v1.0</Badge>
+            <Badge variant="secondary">Full-Stack v1.0</Badge>
+            {currentProject && (
+              <div className="flex items-center space-x-2">
+                <Separator orientation="vertical" className="h-6" />
+                <span className="text-sm text-gray-600">{currentProject.name}</span>
+                {isSaving && (
+                  <div className="flex items-center space-x-1">
+                    <LoaderIcon className="h-3 w-3 animate-spin text-blue-600" />
+                    <span className="text-xs text-blue-600">Saving...</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -299,14 +311,76 @@ const BannerMaker = () => {
             </Button>
             <Separator orientation="vertical" className="h-6" />
             <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveProject}
+              disabled={!currentProject || isSaving}
+            >
+              <SaveIcon className="h-4 w-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button
               onClick={handleExport}
               className="bg-blue-600 hover:bg-blue-700"
+              disabled={isExporting || !currentProject}
             >
-              <DownloadIcon className="h-4 w-4 mr-2" />
-              Export Banner
+              {isExporting ? (
+                <>
+                  <LoaderIcon className="h-4 w-4 mr-2 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <DownloadIcon className="h-4 w-4 mr-2" />
+                  Export Banner
+                </>
+              )}
             </Button>
           </div>
         </div>
+        
+        {/* Error Display */}
+        {(projectError || exportError) && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="flex items-center space-x-2">
+              <AlertCircleIcon className="h-5 w-5 text-red-500" />
+              <div>
+                <p className="text-sm text-red-800 font-medium">Error</p>
+                <p className="text-sm text-red-700">{projectError || exportError}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  clearProjectError();
+                  clearExportError();
+                }}
+                className="ml-auto text-red-600 hover:text-red-700"
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {/* Export Progress */}
+        {isExporting && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <div className="flex items-center space-x-3">
+              <LoaderIcon className="h-5 w-5 text-blue-600 animate-spin" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-900">Exporting banner...</p>
+                <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${exportProgress}%` }}
+                  />
+                </div>
+              </div>
+              <span className="text-sm text-blue-700 font-medium">{exportProgress}%</span>
+            </div>
+          </div>
+        )}
       </header>
 
       <div className="flex h-[calc(100vh-80px)]">
