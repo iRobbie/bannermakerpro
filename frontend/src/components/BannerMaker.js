@@ -23,7 +23,8 @@ import {
   TrashIcon,
   SaveIcon,
   AlertCircleIcon,
-  LoaderIcon
+  LoaderIcon,
+  XIcon
 } from 'lucide-react';
 
 const BannerMaker = () => {
