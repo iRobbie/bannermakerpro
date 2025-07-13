@@ -47,9 +47,9 @@ class GridSize(BaseModel):
 
 # Export Settings Model
 class ExportSettings(BaseModel):
-    format: str = Field(default="png", regex="^(png|jpg)$")
+    format: str = Field(default="png", pattern="^(png|jpg)$")
     quality: int = Field(default=90, ge=10, le=100)
-    resolution: str = Field(default="2K", regex="^(1080p|2K|4K)$")
+    resolution: str = Field(default="2K", pattern="^(1080p|2K|4K)$")
 
 # Project Models
 class ProjectCreate(BaseModel):
