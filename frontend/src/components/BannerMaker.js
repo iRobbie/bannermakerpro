@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 const BannerMaker = () => {
-  const [images, setImages] = useState(mockData.sampleImages);
+  const [images, setImages] = useState([]);
   const [gridSize, setGridSize] = useState({ rows: 2, cols: 2 });
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [textOverlays, setTextOverlays] = useState([]);
@@ -39,6 +39,26 @@ const BannerMaker = () => {
     resolution: '2K'
   });
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // API hooks
+  const { 
+    currentProject, 
+    isLoading: isProjectLoading, 
+    error: projectError,
+    createProject,
+    updateProject,
+    clearError: clearProjectError
+  } = useProjects();
+  
+  const { 
+    isExporting, 
+    exportProgress, 
+    exportError,
+    downloadBanner,
+    clearError: clearExportError
+  } = useExport();
+
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
 
