@@ -111,7 +111,7 @@ const BannerMaker = () => {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [images, gridSize, backgroundColor, textOverlays, exportSettings, currentProject]);
+  }, [images, gridSize, backgroundColor, textOverlays, exportSettings, currentProject, isSaving, updateProject]);
 
   const handleCreateProject = async () => {
     try {
