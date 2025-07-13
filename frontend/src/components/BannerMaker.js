@@ -182,24 +182,20 @@ const BannerMaker = () => {
   };
 
   const handleExport = async () => {
+    if (!currentProject) {
+      alert('Please create a project first');
+      return;
+    }
+
     try {
-      // Mock export functionality
-      const canvas = fabricCanvasRef.current;
-      if (!canvas) return;
-
-      const resolution = resolutionOptions[exportSettings.resolution];
-      const dataURL = canvas.toDataURL({
-        format: exportSettings.format === 'jpg' ? 'jpeg' : 'png',
-        quality: exportSettings.quality / 100,
-        multiplier: resolution.width / canvasSize.width
-      });
-
-      // Create download link
-      const link = document.createElement('a');
-      link.download = `banner_${Date.now()}.${exportSettings.format}`;
-      link.href = dataURL;
-      link.click();
-
+      clearExportError();
+      
+      // First save the current project
+      await handleSaveProject();
+      
+      // Then export the banner
+      await downloadBanner(currentProject.id, currentProject.name);
+      
       // Show success message
       alert(`Banner exported successfully as ${exportSettings.format.toUpperCase()}!`);
     } catch (error) {
