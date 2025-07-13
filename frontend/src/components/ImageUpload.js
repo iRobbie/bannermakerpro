@@ -1,20 +1,60 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { ImageIcon, UploadIcon, XIcon } from 'lucide-react';
+import { ImageIcon, UploadIcon, XIcon, LoaderIcon, AlertCircleIcon } from 'lucide-react';
+import { useImageUpload } from '../hooks/useApi';
 
 const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
-  const onDrop = useCallback((acceptedFiles) => {
+  const { isUploading, uploadProgress, uploadError, uploadImages, clearError } = useImageUpload();
+  const [pendingFiles, setPendingFiles] = useState([]);
+
+  const onDrop = useCallback(async (acceptedFiles) => {
+    // Create preview objects for immediate UI feedback
     const newImages = acceptedFiles.map(file => ({
       src: URL.createObjectURL(file),
       name: file.name,
       size: file.size,
-      file: file
+      file: file,
+      isUploading: true
     }));
-    onImageUpload(newImages);
-  }, [onImageUpload]);
+    
+    // Add to pending files for upload
+    setPendingFiles(newImages);
+    
+    try {
+      clearError();
+      
+      // Upload to backend
+      const uploadResult = await uploadImages(newImages);
+      
+      // Transform backend response to match frontend format
+      const uploadedImages = uploadResult.images.map(img => ({
+        id: img.id,
+        src: `${process.env.REACT_APP_BACKEND_URL}${img.url}`,
+        name: img.name,
+        size: img.size,
+        file: null,
+        isUploading: false,
+        uploadedAt: img.created_at
+      }));
+      
+      // Call the parent callback with uploaded images
+      onImageUpload(uploadedImages);
+      
+      // Clear pending files
+      setPendingFiles([]);
+      
+    } catch (error) {
+      console.error('Upload failed:', error);
+      // Remove pending files on error
+      setPendingFiles([]);
+      
+      // You might want to show a toast notification here
+      // For now, the error is displayed in the component
+    }
+  }, [onImageUpload, uploadImages, clearError]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
