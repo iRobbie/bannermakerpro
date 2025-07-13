@@ -1,0 +1,131 @@
+import React, { useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { Badge } from './ui/badge';
+import { ImageIcon, UploadIcon, XIcon } from 'lucide-react';
+
+const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
+  const onDrop = useCallback((acceptedFiles) => {
+    const newImages = acceptedFiles.map(file => ({
+      src: URL.createObjectURL(file),
+      name: file.name,
+      size: file.size,
+      file: file
+    }));
+    onImageUpload(newImages);
+  }, [onImageUpload]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp']
+    },
+    maxSize: 50 * 1024 * 1024, // 50MB
+    multiple: true
+  });
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Images</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Add images to create your banner. Supports PNG, JPG, WEBP, GIF, BMP up to 50MB each.
+        </p>
+      </div>
+
+      {/* Upload Zone */}
+      <Card
+        {...getRootProps()}
+        className={`p-8 border-2 border-dashed cursor-pointer transition-all duration-200 ${
+          isDragActive 
+            ? 'border-blue-500 bg-blue-50' 
+            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+        }`}
+      >
+        <input {...getInputProps()} />
+        <div className="text-center">
+          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+            <UploadIcon className="h-6 w-6 text-blue-600" />
+          </div>
+          <h4 className="text-lg font-medium text-gray-900 mb-2">
+            {isDragActive ? 'Drop images here' : 'Upload Images'}
+          </h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Drag and drop images here, or click to browse
+          </p>
+          <Button variant="outline" size="sm">
+            Choose Files
+          </Button>
+        </div>
+      </Card>
+
+      {/* Uploaded Images List */}
+      {images.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-md font-medium text-gray-900">
+              Uploaded Images
+            </h4>
+            <Badge variant="secondary">
+              {images.length} {images.length === 1 ? 'image' : 'images'}
+            </Badge>
+          </div>
+          
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {images.map((image, index) => (
+              <Card key={index} className="p-3">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={image.src}
+                      alt={image.name}
+                      className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {image.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatFileSize(image.size)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRemoveImage(index)}
+                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <XIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Upload Tips */}
+      <Card className="p-4 bg-blue-50 border-blue-200">
+        <h4 className="text-sm font-medium text-blue-900 mb-2">Tips:</h4>
+        <ul className="text-xs text-blue-800 space-y-1">
+          <li>• For best results, use high-resolution images</li>
+          <li>• Images will be automatically resized to fit grid cells</li>
+          <li>• You can upload up to 50 images per project</li>
+          <li>• Transparent PNG images work great for overlays</li>
+        </ul>
+      </Card>
+    </div>
+  );
+};
+
+export default ImageUpload;
