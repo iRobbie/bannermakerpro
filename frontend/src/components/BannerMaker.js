@@ -6,7 +6,7 @@ import ColorPicker from './ColorPicker';
 import TextOverlay from './TextOverlay';
 import ExportPanel from './ExportPanel';
 import CanvasPreview from './CanvasPreview';
-import { mockData } from '../utils/mockData';
+import { useProjects, useExport } from '../hooks/useApi';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -20,7 +20,10 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
   RotateCcwIcon,
-  TrashIcon
+  TrashIcon,
+  SaveIcon,
+  AlertCircleIcon,
+  LoaderIcon
 } from 'lucide-react';
 
 const BannerMaker = () => {
