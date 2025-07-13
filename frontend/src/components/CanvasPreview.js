@@ -25,7 +25,7 @@ const CanvasPreview = forwardRef(({
   // Initialize Fabric.js canvas
   useEffect(() => {
     if (canvasElementRef.current && !canvasInstanceRef.current) {
-      const canvas = new fabric.Canvas(canvasElementRef.current, {
+      const canvas = new Canvas(canvasElementRef.current, {
         width: canvasSize.width,
         height: canvasSize.height,
         backgroundColor: backgroundColor,
@@ -95,7 +95,7 @@ const CanvasPreview = forwardRef(({
 
     // Add grid lines for visual reference
     for (let i = 1; i < gridSize.cols; i++) {
-      const line = new fabric.Line([i * cellWidth, 0, i * cellWidth, canvasSize.height], {
+      const line = new Line([i * cellWidth, 0, i * cellWidth, canvasSize.height], {
         stroke: '#e5e7eb',
         strokeWidth: 1,
         selectable: false,
@@ -106,7 +106,7 @@ const CanvasPreview = forwardRef(({
     }
 
     for (let i = 1; i < gridSize.rows; i++) {
-      const line = new fabric.Line([0, i * cellHeight, canvasSize.width, i * cellHeight], {
+      const line = new Line([0, i * cellHeight, canvasSize.width, i * cellHeight], {
         stroke: '#e5e7eb',
         strokeWidth: 1,
         selectable: false,
@@ -124,7 +124,7 @@ const CanvasPreview = forwardRef(({
       const x = col * cellWidth;
       const y = row * cellHeight;
 
-      fabric.Image.fromURL(image.src, (fabricImage) => {
+      FabricImage.fromURL(image.src).then((fabricImage) => {
         // Calculate scaling to fit cell while maintaining aspect ratio
         const imgAspect = fabricImage.width / fabricImage.height;
         const cellAspect = cellWidth / cellHeight;
@@ -156,9 +156,7 @@ const CanvasPreview = forwardRef(({
 
         canvas.add(fabricImage);
         canvas.renderAll();
-      }, {
-        crossOrigin: 'anonymous'
-      });
+      }).catch(console.error);
     });
 
   }, [images, gridSize, canvasSize]);
@@ -179,7 +177,7 @@ const CanvasPreview = forwardRef(({
 
     // Add text overlays
     textOverlays.forEach((overlay) => {
-      const textObj = new fabric.Textbox(overlay.text, {
+      const textObj = new Textbox(overlay.text, {
         left: overlay.position?.x || 50,
         top: overlay.position?.y || 50,
         fontFamily: overlay.style.fontFamily,
