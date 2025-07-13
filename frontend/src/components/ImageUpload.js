@@ -62,7 +62,8 @@ const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
       'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp']
     },
     maxSize: 50 * 1024 * 1024, // 50MB
-    multiple: true
+    multiple: true,
+    disabled: isUploading
   });
 
   const formatFileSize = (bytes) => {
@@ -73,6 +74,8 @@ const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const allImages = [...images, ...pendingFiles];
+
   return (
     <div className="space-y-4">
       <div>
@@ -81,6 +84,46 @@ const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
           Add images to create your banner. Supports PNG, JPG, WEBP, GIF, BMP up to 50MB each.
         </p>
       </div>
+
+      {/* Upload Error Display */}
+      {uploadError && (
+        <Card className="p-4 bg-red-50 border-red-200">
+          <div className="flex items-center space-x-2">
+            <AlertCircleIcon className="h-5 w-5 text-red-500" />
+            <div>
+              <h4 className="text-sm font-medium text-red-800">Upload Failed</h4>
+              <p className="text-sm text-red-700">{uploadError}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearError}
+              className="ml-auto text-red-600 hover:text-red-700"
+            >
+              <XIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Upload Progress */}
+      {isUploading && (
+        <Card className="p-4 bg-blue-50 border-blue-200">
+          <div className="flex items-center space-x-3">
+            <LoaderIcon className="h-5 w-5 text-blue-600 animate-spin" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900">Uploading images...</p>
+              <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+            <span className="text-sm text-blue-700 font-medium">{uploadProgress}%</span>
+          </div>
+        </Card>
+      )}
 
       {/* Upload Zone */}
       <Card
