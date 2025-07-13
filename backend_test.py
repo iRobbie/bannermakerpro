@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = "https://f72ce4f3-5c9c-4b13-b0b0-6b2d4a938584.preview.emergentagent.com"
+BACKEND_URL = "https://5c8dedcf-5a2a-4e2a-b58c-da67c4738be2.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class BannerMakerAPITester:
