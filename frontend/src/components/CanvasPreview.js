@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { Canvas, Image as FabricImage, Line, Textbox } from 'fabric';
+import { Canvas, FabricImage, Line, Textbox } from 'fabric';
 
 const CanvasPreview = forwardRef(({ 
   images, 
