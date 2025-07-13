@@ -1,0 +1,258 @@
+import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { fabric } from 'fabric';
+
+const CanvasPreview = forwardRef(({ 
+  images, 
+  gridSize, 
+  backgroundColor, 
+  textOverlays, 
+  canvasSize,
+  zoomLevel,
+  fabricCanvasRef
+}, ref) => {
+  const canvasElementRef = useRef(null);
+  const canvasInstanceRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    exportCanvas: () => {
+      if (canvasInstanceRef.current) {
+        return canvasInstanceRef.current.toDataURL();
+      }
+      return null;
+    }
+  }));
+
+  // Initialize Fabric.js canvas
+  useEffect(() => {
+    if (canvasElementRef.current && !canvasInstanceRef.current) {
+      const canvas = new fabric.Canvas(canvasElementRef.current, {
+        width: canvasSize.width,
+        height: canvasSize.height,
+        backgroundColor: backgroundColor,
+        preserveObjectStacking: true,
+        selection: true
+      });
+
+      canvasInstanceRef.current = canvas;
+      if (fabricCanvasRef) {
+        fabricCanvasRef.current = canvas;
+      }
+
+      // Add some interaction capabilities
+      canvas.on('object:moving', function(e) {
+        const obj = e.target;
+        obj.setCoords();
+      });
+
+      return () => {
+        canvas.dispose();
+        canvasInstanceRef.current = null;
+        if (fabricCanvasRef) {
+          fabricCanvasRef.current = null;
+        }
+      };
+    }
+  }, [canvasSize, fabricCanvasRef]);
+
+  // Update canvas size
+  useEffect(() => {
+    if (canvasInstanceRef.current) {
+      canvasInstanceRef.current.setDimensions({
+        width: canvasSize.width,
+        height: canvasSize.height
+      });
+      canvasInstanceRef.current.renderAll();
+    }
+  }, [canvasSize]);
+
+  // Update background color
+  useEffect(() => {
+    if (canvasInstanceRef.current) {
+      canvasInstanceRef.current.setBackgroundColor(backgroundColor, () => {
+        canvasInstanceRef.current.renderAll();
+      });
+    }
+  }, [backgroundColor]);
+
+  // Update images and grid layout
+  useEffect(() => {
+    if (!canvasInstanceRef.current) return;
+
+    const canvas = canvasInstanceRef.current;
+    
+    // Clear existing images (but keep text overlays)
+    const objects = canvas.getObjects();
+    objects.forEach(obj => {
+      if (obj.type === 'image' || obj.isGrid) {
+        canvas.remove(obj);
+      }
+    });
+
+    // Calculate grid layout
+    const cellWidth = canvasSize.width / gridSize.cols;
+    const cellHeight = canvasSize.height / gridSize.rows;
+    const totalCells = gridSize.rows * gridSize.cols;
+
+    // Add grid lines for visual reference
+    for (let i = 1; i < gridSize.cols; i++) {
+      const line = new fabric.Line([i * cellWidth, 0, i * cellWidth, canvasSize.height], {
+        stroke: '#e5e7eb',
+        strokeWidth: 1,
+        selectable: false,
+        evented: false,
+        isGrid: true
+      });
+      canvas.add(line);
+    }
+
+    for (let i = 1; i < gridSize.rows; i++) {
+      const line = new fabric.Line([0, i * cellHeight, canvasSize.width, i * cellHeight], {
+        stroke: '#e5e7eb',
+        strokeWidth: 1,
+        selectable: false,
+        evented: false,
+        isGrid: true
+      });
+      canvas.add(line);
+    }
+
+    // Add images to grid
+    images.slice(0, totalCells).forEach((image, index) => {
+      const row = Math.floor(index / gridSize.cols);
+      const col = index % gridSize.cols;
+      
+      const x = col * cellWidth;
+      const y = row * cellHeight;
+
+      fabric.Image.fromURL(image.src, (fabricImage) => {
+        // Calculate scaling to fit cell while maintaining aspect ratio
+        const imgAspect = fabricImage.width / fabricImage.height;
+        const cellAspect = cellWidth / cellHeight;
+        
+        let scale;
+        if (imgAspect > cellAspect) {
+          // Image is wider than cell
+          scale = cellWidth / fabricImage.width;
+        } else {
+          // Image is taller than cell
+          scale = cellHeight / fabricImage.height;
+        }
+
+        fabricImage.set({
+          left: x + cellWidth / 2,
+          top: y + cellHeight / 2,
+          scaleX: scale,
+          scaleY: scale,
+          originX: 'center',
+          originY: 'center',
+          selectable: true,
+          hasControls: true,
+          hasBorders: true,
+          cornerStyle: 'circle',
+          cornerColor: '#3b82f6',
+          borderColor: '#3b82f6',
+          transparentCorners: false
+        });
+
+        canvas.add(fabricImage);
+        canvas.renderAll();
+      }, {
+        crossOrigin: 'anonymous'
+      });
+    });
+
+  }, [images, gridSize, canvasSize]);
+
+  // Update text overlays
+  useEffect(() => {
+    if (!canvasInstanceRef.current) return;
+
+    const canvas = canvasInstanceRef.current;
+    
+    // Remove existing text objects
+    const objects = canvas.getObjects();
+    objects.forEach(obj => {
+      if (obj.type === 'text' || obj.type === 'textbox') {
+        canvas.remove(obj);
+      }
+    });
+
+    // Add text overlays
+    textOverlays.forEach((overlay) => {
+      const textObj = new fabric.Textbox(overlay.text, {
+        left: overlay.position?.x || 50,
+        top: overlay.position?.y || 50,
+        fontFamily: overlay.style.fontFamily,
+        fontSize: overlay.style.fontSize,
+        fill: overlay.style.color,
+        fontWeight: overlay.style.fontWeight,
+        fontStyle: overlay.style.fontStyle,
+        textAlign: overlay.style.textAlign,
+        backgroundColor: overlay.style.backgroundColor === 'transparent' ? '' : overlay.style.backgroundColor,
+        width: 200,
+        selectable: true,
+        hasControls: true,
+        hasBorders: true,
+        cornerStyle: 'circle',
+        cornerColor: '#10b981',
+        borderColor: '#10b981',
+        transparentCorners: false
+      });
+
+      canvas.add(textObj);
+    });
+
+    canvas.renderAll();
+  }, [textOverlays]);
+
+  // Update zoom level
+  useEffect(() => {
+    if (canvasInstanceRef.current) {
+      canvasInstanceRef.current.setZoom(zoomLevel);
+      canvasInstanceRef.current.renderAll();
+    }
+  }, [zoomLevel]);
+
+  return (
+    <div className="relative">
+      <div 
+        className="border border-gray-300 rounded-lg overflow-hidden shadow-inner bg-white"
+        style={{
+          width: canvasSize.width,
+          height: canvasSize.height,
+          transform: `scale(${zoomLevel})`,
+          transformOrigin: 'top left'
+        }}
+      >
+        <canvas
+          ref={canvasElementRef}
+          width={canvasSize.width}
+          height={canvasSize.height}
+        />
+      </div>
+      
+      {/* Canvas Info Overlay */}
+      <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+        {gridSize.rows}×{gridSize.cols} | {images.length} images
+      </div>
+      
+      {images.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center text-gray-500">
+            <div className="w-16 h-16 bg-gray-200 rounded-lg mx-auto mb-3 flex items-center justify-center">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium">Upload images to get started</p>
+            <p className="text-xs mt-1">Your banner preview will appear here</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+CanvasPreview.displayName = 'CanvasPreview';
+
+export default CanvasPreview;
