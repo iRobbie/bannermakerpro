@@ -25,52 +25,68 @@ const CanvasPreview = forwardRef(({
   // Initialize Fabric.js canvas
   useEffect(() => {
     if (canvasElementRef.current && !canvasInstanceRef.current) {
-      const canvas = new Canvas(canvasElementRef.current, {
-        width: canvasSize.width,
-        height: canvasSize.height,
-        backgroundColor: backgroundColor,
-        preserveObjectStacking: true,
-        selection: true
-      });
+      try {
+        const canvas = new Canvas(canvasElementRef.current, {
+          width: canvasSize.width,
+          height: canvasSize.height,
+          backgroundColor: backgroundColor,
+          preserveObjectStacking: true,
+          selection: true
+        });
 
-      canvasInstanceRef.current = canvas;
-      if (fabricCanvasRef) {
-        fabricCanvasRef.current = canvas;
-      }
-
-      // Add some interaction capabilities
-      canvas.on('object:moving', function(e) {
-        const obj = e.target;
-        obj.setCoords();
-      });
-
-      return () => {
-        canvas.dispose();
-        canvasInstanceRef.current = null;
+        canvasInstanceRef.current = canvas;
         if (fabricCanvasRef) {
-          fabricCanvasRef.current = null;
+          fabricCanvasRef.current = canvas;
         }
-      };
+
+        // Add some interaction capabilities
+        canvas.on('object:moving', function(e) {
+          const obj = e.target;
+          if (obj && obj.setCoords) {
+            obj.setCoords();
+          }
+        });
+
+        return () => {
+          if (canvas) {
+            canvas.dispose();
+          }
+          canvasInstanceRef.current = null;
+          if (fabricCanvasRef) {
+            fabricCanvasRef.current = null;
+          }
+        };
+      } catch (error) {
+        console.error('Error initializing canvas:', error);
+      }
     }
-  }, [canvasSize, fabricCanvasRef]);
+  }, [canvasSize, fabricCanvasRef, backgroundColor]);
 
   // Update canvas size
   useEffect(() => {
     if (canvasInstanceRef.current) {
-      canvasInstanceRef.current.setDimensions({
-        width: canvasSize.width,
-        height: canvasSize.height
-      });
-      canvasInstanceRef.current.renderAll();
+      try {
+        canvasInstanceRef.current.setDimensions({
+          width: canvasSize.width,
+          height: canvasSize.height
+        });
+        canvasInstanceRef.current.renderAll();
+      } catch (error) {
+        console.error('Error setting canvas dimensions:', error);
+      }
     }
   }, [canvasSize]);
 
   // Update background color
   useEffect(() => {
     if (canvasInstanceRef.current) {
-      canvasInstanceRef.current.setBackgroundColor(backgroundColor, () => {
+      try {
+        // Use the new API for Fabric.js v6
+        canvasInstanceRef.current.backgroundColor = backgroundColor;
         canvasInstanceRef.current.renderAll();
-      });
+      } catch (error) {
+        console.error('Error setting background color:', error);
+      }
     }
   }, [backgroundColor]);
 
