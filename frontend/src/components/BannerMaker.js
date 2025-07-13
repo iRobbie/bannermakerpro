@@ -94,6 +94,67 @@ const BannerMaker = () => {
     }
   }, [exportSettings.resolution]);
 
+  // Initialize default project on component mount
+  useEffect(() => {
+    if (!currentProject) {
+      handleCreateProject();
+    }
+  }, []);
+
+  // Auto-save project when key state changes
+  useEffect(() => {
+    if (currentProject && !isSaving) {
+      const timeoutId = setTimeout(() => {
+        handleSaveProject();
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [images, gridSize, backgroundColor, textOverlays, exportSettings, currentProject]);
+
+  const handleCreateProject = async () => {
+    try {
+      const projectData = {
+        name: `Banner ${new Date().toLocaleDateString()}`,
+        description: 'Created with Banner Maker'
+      };
+      
+      await createProject(projectData);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
+  };
+
+  const handleSaveProject = async () => {
+    if (!currentProject) return;
+    
+    setIsSaving(true);
+    try {
+      const updateData = {
+        images: images.map(img => img.id).filter(Boolean),
+        grid_size: gridSize,
+        background_color: backgroundColor,
+        text_overlays: textOverlays.map(overlay => ({
+          id: overlay.id,
+          text: overlay.text,
+          style: overlay.style,
+          position: overlay.position
+        })),
+        export_settings: {
+          format: exportSettings.format,
+          quality: exportSettings.quality,
+          resolution: exportSettings.resolution
+        }
+      };
+      
+      await updateProject(currentProject.id, updateData);
+    } catch (error) {
+      console.error('Failed to save project:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleImageUpload = (newImages) => {
     setImages(prev => [...prev, ...newImages]);
   };
