@@ -183,14 +183,13 @@ class BannerMakerAPITester:
                 "data": image_base64
             }]
             
-            # Prepare form data
+            # Prepare form data - the API expects form data, not JSON
             form_data = {
                 'images_data': json.dumps(images_data)
             }
             
-            # Remove JSON content type for form data
-            headers = {'Accept': 'application/json'}
-            response = self.session.post(f"{API_BASE}/images/upload", data=form_data, headers=headers)
+            # Use requests without session to avoid JSON headers
+            response = requests.post(f"{API_BASE}/images/upload", data=form_data)
             
             if response.status_code == 200:
                 data = response.json()
