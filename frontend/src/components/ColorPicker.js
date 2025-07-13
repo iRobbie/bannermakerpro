@@ -3,7 +3,7 @@ import { SketchPicker } from 'react-color';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { PaletteIcon, EyeDropperIcon } from 'lucide-react';
+import { PaletteIcon, PipetteIcon } from 'lucide-react';
 
 const ColorPicker = ({ backgroundColor, onColorChange }) => {
   const [showPicker, setShowPicker] = useState(false);
