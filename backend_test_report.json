@@ -1,16 +1,16 @@
 {
   "summary": {
     "total_tests": 11,
-    "passed": 10,
-    "failed": 1,
-    "timestamp": "2025-07-13T19:33:25.542722"
+    "passed": 11,
+    "failed": 0,
+    "timestamp": "2025-07-13T19:34:02.479964"
   },
   "results": [
     {
       "test": "Health Check",
       "success": true,
       "message": "API is healthy",
-      "timestamp": "2025-07-13T19:33:08.927062",
+      "timestamp": "2025-07-13T19:33:58.346665",
       "response_data": {
         "status": "healthy",
         "message": "Banner Maker API is operational"
@@ -20,7 +20,7 @@
       "test": "Root Endpoint",
       "success": true,
       "message": "Root endpoint working",
-      "timestamp": "2025-07-13T19:33:11.996571",
+      "timestamp": "2025-07-13T19:33:58.396099",
       "response_data": {
         "message": "Banner Maker API is running",
         "version": "1.0.0"
@@ -29,10 +29,10 @@
     {
       "test": "Create Project",
       "success": true,
-      "message": "Project created with ID: 12ce168b-c372-4e64-9fed-db43df2a26dd",
-      "timestamp": "2025-07-13T19:33:18.071952",
+      "message": "Project created with ID: b0243bc3-32b0-4cf8-8334-8e5e95a29611",
+      "timestamp": "2025-07-13T19:33:58.416916",
       "response_data": {
-        "id": "12ce168b-c372-4e64-9fed-db43df2a26dd",
+        "id": "b0243bc3-32b0-4cf8-8334-8e5e95a29611",
         "name": "Test Banner Project",
         "description": "A test project for API validation",
         "images": [],
@@ -47,26 +47,26 @@
           "quality": 90,
           "resolution": "2K"
         },
-        "created_at": "2025-07-13T19:33:18.049000",
-        "updated_at": "2025-07-13T19:33:18.049000"
+        "created_at": "2025-07-13T19:33:58.411000",
+        "updated_at": "2025-07-13T19:33:58.411000"
       }
     },
     {
       "test": "Get Projects",
       "success": true,
-      "message": "Retrieved 1 projects",
-      "timestamp": "2025-07-13T19:33:25.100880",
+      "message": "Retrieved 2 projects",
+      "timestamp": "2025-07-13T19:33:58.469470",
       "response_data": {
-        "count": 1
+        "count": 2
       }
     },
     {
       "test": "Get Specific Project",
       "success": true,
       "message": "Retrieved project: Test Banner Project",
-      "timestamp": "2025-07-13T19:33:25.149169",
+      "timestamp": "2025-07-13T19:33:58.520435",
       "response_data": {
-        "id": "12ce168b-c372-4e64-9fed-db43df2a26dd",
+        "id": "b0243bc3-32b0-4cf8-8334-8e5e95a29611",
         "name": "Test Banner Project",
         "description": "A test project for API validation",
         "images": [],
@@ -81,22 +81,34 @@
           "quality": 90,
           "resolution": "2K"
         },
-        "created_at": "2025-07-13T19:33:18.049000",
-        "updated_at": "2025-07-13T19:33:18.049000"
+        "created_at": "2025-07-13T19:33:58.411000",
+        "updated_at": "2025-07-13T19:33:58.411000"
       }
     },
     {
       "test": "Image Upload",
-      "success": false,
-      "message": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"images_data\"],\"msg\":\"Field required\",\"input\":null,\"url\":\"https://errors.pydantic.dev/2.11/v/missing\"}]}",
-      "timestamp": "2025-07-13T19:33:25.180169",
-      "response_data": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"images_data\"],\"msg\":\"Field required\",\"input\":null,\"url\":\"https://errors.pydantic.dev/2.11/v/missing\"}]}"
+      "success": true,
+      "message": "Image uploaded with ID: dc33159d-d275-49b4-ab5c-8da6e9d36607",
+      "timestamp": "2025-07-13T19:33:58.598654",
+      "response_data": {
+        "images": [
+          {
+            "id": "dc33159d-d275-49b4-ab5c-8da6e9d36607",
+            "name": "test_image.png",
+            "size": 287,
+            "content_type": "image/png",
+            "url": "/api/files/e405bf89-b985-4293-b0f7-9f44640ff33f_20250713_193358.png",
+            "created_at": "2025-07-13T19:33:58.583860"
+          }
+        ],
+        "message": "Successfully uploaded 1 images"
+      }
     },
     {
       "test": "Get Images",
       "success": true,
       "message": "Retrieved 0 images",
-      "timestamp": "2025-07-13T19:33:25.228423",
+      "timestamp": "2025-07-13T19:33:58.608561",
       "response_data": {
         "count": 0
       }
@@ -105,9 +117,9 @@
       "test": "Export Banner",
       "success": true,
       "message": "Banner generated: Banner generated successfully",
-      "timestamp": "2025-07-13T19:33:25.414556",
+      "timestamp": "2025-07-13T19:33:58.785144",
       "response_data": {
-        "export_url": "/api/files/banner_12ce168b-c372-4e64-9fed-db43df2a26dd_20250713_193325.png",
+        "export_url": "/api/files/banner_b0243bc3-32b0-4cf8-8334-8e5e95a29611_20250713_193358.png",
         "format": "png",
         "resolution": "2K",
         "file_size_mb": 0.02,
@@ -118,21 +130,21 @@
       "test": "Error Handling - Invalid Project ID",
       "success": true,
       "message": "Correctly returned 500",
-      "timestamp": "2025-07-13T19:33:25.423453",
+      "timestamp": "2025-07-13T19:33:58.835246",
       "response_data": null
     },
     {
       "test": "Error Handling - Invalid Image Data",
       "success": true,
       "message": "Correctly returned 422",
-      "timestamp": "2025-07-13T19:33:25.494282",
+      "timestamp": "2025-07-13T19:33:58.845087",
       "response_data": null
     },
     {
       "test": "Error Handling - Export Invalid Project",
       "success": true,
       "message": "Correctly returned 404",
-      "timestamp": "2025-07-13T19:33:25.542659",
+      "timestamp": "2025-07-13T19:34:02.479889",
       "response_data": null
     }
   ]
