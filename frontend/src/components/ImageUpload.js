@@ -131,48 +131,59 @@ const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
         className={`p-8 border-2 border-dashed cursor-pointer transition-all duration-200 ${
           isDragActive 
             ? 'border-blue-500 bg-blue-50' 
+            : isUploading
+            ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
             : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
         }`}
       >
         <input {...getInputProps()} />
         <div className="text-center">
           <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-            <UploadIcon className="h-6 w-6 text-blue-600" />
+            {isUploading ? (
+              <LoaderIcon className="h-6 w-6 text-blue-600 animate-spin" />
+            ) : (
+              <UploadIcon className="h-6 w-6 text-blue-600" />
+            )}
           </div>
           <h4 className="text-lg font-medium text-gray-900 mb-2">
-            {isDragActive ? 'Drop images here' : 'Upload Images'}
+            {isDragActive ? 'Drop images here' : isUploading ? 'Uploading...' : 'Upload Images'}
           </h4>
           <p className="text-sm text-gray-600 mb-4">
-            Drag and drop images here, or click to browse
+            {isUploading ? 'Please wait while images are being uploaded' : 'Drag and drop images here, or click to browse'}
           </p>
-          <Button variant="outline" size="sm">
-            Choose Files
+          <Button variant="outline" size="sm" disabled={isUploading}>
+            {isUploading ? 'Uploading...' : 'Choose Files'}
           </Button>
         </div>
       </Card>
 
       {/* Uploaded Images List */}
-      {images.length > 0 && (
+      {allImages.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-md font-medium text-gray-900">
-              Uploaded Images
+              {isUploading ? 'Images' : 'Uploaded Images'}
             </h4>
             <Badge variant="secondary">
-              {images.length} {images.length === 1 ? 'image' : 'images'}
+              {allImages.length} {allImages.length === 1 ? 'image' : 'images'}
             </Badge>
           </div>
           
           <div className="space-y-2 max-h-80 overflow-y-auto">
-            {images.map((image, index) => (
-              <Card key={index} className="p-3">
+            {allImages.map((image, index) => (
+              <Card key={image.id || index} className="p-3">
                 <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 relative">
                     <img
                       src={image.src}
                       alt={image.name}
                       className="w-12 h-12 object-cover rounded-lg border border-gray-200"
                     />
+                    {image.isUploading && (
+                      <div className="absolute inset-0 bg-blue-500 bg-opacity-50 rounded-lg flex items-center justify-center">
+                        <LoaderIcon className="h-4 w-4 text-white animate-spin" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
@@ -180,6 +191,12 @@ const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
                     </p>
                     <p className="text-xs text-gray-500">
                       {formatFileSize(image.size)}
+                      {image.uploadedAt && (
+                        <span className="ml-2 text-green-600">• Uploaded</span>
+                      )}
+                      {image.isUploading && (
+                        <span className="ml-2 text-blue-600">• Uploading...</span>
+                      )}
                     </p>
                   </div>
                   <Button
@@ -187,6 +204,7 @@ const ImageUpload = ({ onImageUpload, images, onRemoveImage }) => {
                     size="sm"
                     onClick={() => onRemoveImage(index)}
                     className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                    disabled={image.isUploading}
                   >
                     <XIcon className="h-4 w-4" />
                   </Button>
