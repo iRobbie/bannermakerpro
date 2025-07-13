@@ -96,84 +96,94 @@ const CanvasPreview = forwardRef(({
 
     const canvas = canvasInstanceRef.current;
     
-    // Clear existing images (but keep text overlays)
-    const objects = canvas.getObjects();
-    objects.forEach(obj => {
-      if (obj.type === 'image' || obj.isGrid) {
-        canvas.remove(obj);
-      }
-    });
-
-    // Calculate grid layout
-    const cellWidth = canvasSize.width / gridSize.cols;
-    const cellHeight = canvasSize.height / gridSize.rows;
-    const totalCells = gridSize.rows * gridSize.cols;
-
-    // Add grid lines for visual reference
-    for (let i = 1; i < gridSize.cols; i++) {
-      const line = new Line([i * cellWidth, 0, i * cellWidth, canvasSize.height], {
-        stroke: '#e5e7eb',
-        strokeWidth: 1,
-        selectable: false,
-        evented: false,
-        isGrid: true
-      });
-      canvas.add(line);
-    }
-
-    for (let i = 1; i < gridSize.rows; i++) {
-      const line = new Line([0, i * cellHeight, canvasSize.width, i * cellHeight], {
-        stroke: '#e5e7eb',
-        strokeWidth: 1,
-        selectable: false,
-        evented: false,
-        isGrid: true
-      });
-      canvas.add(line);
-    }
-
-    // Add images to grid
-    images.slice(0, totalCells).forEach((image, index) => {
-      const row = Math.floor(index / gridSize.cols);
-      const col = index % gridSize.cols;
-      
-      const x = col * cellWidth;
-      const y = row * cellHeight;
-
-      FabricImage.fromURL(image.src).then((fabricImage) => {
-        // Calculate scaling to fit cell while maintaining aspect ratio
-        const imgAspect = fabricImage.width / fabricImage.height;
-        const cellAspect = cellWidth / cellHeight;
-        
-        let scale;
-        if (imgAspect > cellAspect) {
-          // Image is wider than cell
-          scale = cellWidth / fabricImage.width;
-        } else {
-          // Image is taller than cell
-          scale = cellHeight / fabricImage.height;
+    try {
+      // Clear existing images (but keep text overlays)
+      const objects = canvas.getObjects();
+      objects.forEach(obj => {
+        if (obj.type === 'image' || obj.isGrid) {
+          canvas.remove(obj);
         }
+      });
 
-        fabricImage.set({
-          left: x + cellWidth / 2,
-          top: y + cellHeight / 2,
-          scaleX: scale,
-          scaleY: scale,
-          originX: 'center',
-          originY: 'center',
-          selectable: true,
-          hasControls: true,
-          hasBorders: true,
-          cornerStyle: 'circle',
-          cornerColor: '#3b82f6',
-          borderColor: '#3b82f6',
-          transparentCorners: false
+      // Calculate grid layout
+      const cellWidth = canvasSize.width / gridSize.cols;
+      const cellHeight = canvasSize.height / gridSize.rows;
+      const totalCells = gridSize.rows * gridSize.cols;
+
+      // Add grid lines for visual reference
+      for (let i = 1; i < gridSize.cols; i++) {
+        const line = new Line([i * cellWidth, 0, i * cellWidth, canvasSize.height], {
+          stroke: '#e5e7eb',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          isGrid: true
         });
+        canvas.add(line);
+      }
 
-        canvas.add(fabricImage);
-        canvas.renderAll();
-      }).catch(console.error);
-    });
+      for (let i = 1; i < gridSize.rows; i++) {
+        const line = new Line([0, i * cellHeight, canvasSize.width, i * cellHeight], {
+          stroke: '#e5e7eb',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          isGrid: true
+        });
+        canvas.add(line);
+      }
+
+      // Add images to grid
+      images.slice(0, totalCells).forEach((image, index) => {
+        const row = Math.floor(index / gridSize.cols);
+        const col = index % gridSize.cols;
+        
+        const x = col * cellWidth;
+        const y = row * cellHeight;
+
+        FabricImage.fromURL(image.src, {}, {
+          crossOrigin: 'anonymous'
+        }).then((fabricImage) => {
+          // Calculate scaling to fit cell while maintaining aspect ratio
+          const imgAspect = fabricImage.width / fabricImage.height;
+          const cellAspect = cellWidth / cellHeight;
+          
+          let scale;
+          if (imgAspect > cellAspect) {
+            // Image is wider than cell
+            scale = cellWidth / fabricImage.width;
+          } else {
+            // Image is taller than cell
+            scale = cellHeight / fabricImage.height;
+          }
+
+          fabricImage.set({
+            left: x + cellWidth / 2,
+            top: y + cellHeight / 2,
+            scaleX: scale,
+            scaleY: scale,
+            originX: 'center',
+            originY: 'center',
+            selectable: true,
+            hasControls: true,
+            hasBorders: true,
+            cornerStyle: 'circle',
+            cornerColor: '#3b82f6',
+            borderColor: '#3b82f6',
+            transparentCorners: false
+          });
+
+          canvas.add(fabricImage);
+          canvas.renderAll();
+        }).catch((error) => {
+          console.error('Error loading image:', image.src, error);
+        });
+      });
+
+      canvas.renderAll();
+    } catch (error) {
+      console.error('Error updating images and grid:', error);
+    }
 
   }, [images, gridSize, canvasSize]);
 
