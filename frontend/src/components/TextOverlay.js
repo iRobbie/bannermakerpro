@@ -33,6 +33,7 @@ const TextOverlay = ({ textOverlays, onAddTextOverlay, onRemoveTextOverlay }) =>
 
   const fontOptions = [
     'Arial',
+    'ArchivoBlack-Regular',
     'Helvetica',
     'Times New Roman',
     'Georgia',
