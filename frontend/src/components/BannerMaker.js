@@ -24,7 +24,8 @@ import {
   SaveIcon,
   AlertCircleIcon,
   LoaderIcon,
-  XIcon
+  XIcon,
+  UndoIcon
 } from 'lucide-react';
 
 const BannerMaker = () => {
@@ -41,6 +42,8 @@ const BannerMaker = () => {
   });
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   
   // API hooks
   const { 
@@ -75,6 +78,42 @@ const BannerMaker = () => {
     '1080p': { width: 1920, height: 1080 },
     '2K': { width: 2048, height: 2048 },
     '4K': { width: 4096, height: 4096 }
+  };
+
+  // Save to history for undo functionality
+  const saveToHistory = () => {
+    const currentState = {
+      images: JSON.parse(JSON.stringify(images)),
+      gridSize: JSON.parse(JSON.stringify(gridSize)),
+      backgroundColor: backgroundColor,
+      textOverlays: JSON.parse(JSON.stringify(textOverlays)),
+      exportSettings: JSON.parse(JSON.stringify(exportSettings)),
+      timestamp: Date.now()
+    };
+    
+    const newHistory = history.slice(0, currentHistoryIndex + 1);
+    newHistory.push(currentState);
+    
+    // Keep only last 20 states
+    if (newHistory.length > 20) {
+      newHistory.shift();
+    }
+    
+    setHistory(newHistory);
+    setCurrentHistoryIndex(newHistory.length - 1);
+  };
+
+  // Undo functionality
+  const handleUndo = () => {
+    if (currentHistoryIndex > 0) {
+      const prevState = history[currentHistoryIndex - 1];
+      setImages(prevState.images);
+      setGridSize(prevState.gridSize);
+      setBackgroundColor(prevState.backgroundColor);
+      setTextOverlays(prevState.textOverlays);
+      setExportSettings(prevState.exportSettings);
+      setCurrentHistoryIndex(currentHistoryIndex - 1);
+    }
   };
 
   useEffect(() => {
@@ -121,6 +160,23 @@ const BannerMaker = () => {
       };
       
       await createProject(projectData);
+      
+      // Initialize history with default state
+      const initialState = {
+        images: [],
+        gridSize: { rows: 2, cols: 2 },
+        backgroundColor: '#ffffff',
+        textOverlays: [],
+        exportSettings: {
+          format: 'png',
+          quality: 90,
+          resolution: '2K'
+        },
+        timestamp: Date.now()
+      };
+      
+      setHistory([initialState]);
+      setCurrentHistoryIndex(0);
     } catch (error) {
       console.error('Failed to create project:', error);
     }
@@ -140,6 +196,11 @@ const BannerMaker = () => {
       return;
     }
     
+    // Validate text overlays
+    const validTextOverlays = textOverlays.filter(overlay => 
+      overlay.text && overlay.text.trim() && overlay.style && overlay.position
+    );
+    
     setIsSaving(true);
     try {
       const updateData = {
@@ -148,12 +209,25 @@ const BannerMaker = () => {
           rows: Math.max(1, Math.min(6, gridSize.rows)),
           cols: Math.max(1, Math.min(6, gridSize.cols))
         },
-        background_color: backgroundColor || '#ffffff',
-        text_overlays: textOverlays.map(overlay => ({
+        background_color: backgroundColor && backgroundColor !== 'transparent' ? backgroundColor : '#ffffff',
+        text_overlays: validTextOverlays.map(overlay => ({
           id: overlay.id,
           text: overlay.text,
-          style: overlay.style,
-          position: overlay.position
+          style: {
+            font_size: overlay.style.fontSize || 24,
+            font_family: overlay.style.fontFamily || 'Arial',
+            color: overlay.style.color || '#000000',
+            font_weight: overlay.style.fontWeight || 'normal',
+            font_style: overlay.style.fontStyle || 'normal',
+            text_align: overlay.style.textAlign || 'left',
+            background_color: overlay.style.backgroundColor === 'transparent' ? 'transparent' : (overlay.style.backgroundColor || 'transparent'),
+            padding: overlay.style.padding || 10,
+            border_radius: overlay.style.borderRadius || 0
+          },
+          position: {
+            x: overlay.position.x || 50,
+            y: overlay.position.y || 50
+          }
         })),
         export_settings: {
           format: exportSettings.format || 'png',
@@ -171,18 +245,27 @@ const BannerMaker = () => {
   };
 
   const handleImageUpload = (newImages) => {
+    saveToHistory();
     setImages(prev => [...prev, ...newImages]);
   };
 
   const handleRemoveImage = (index) => {
+    saveToHistory();
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleGridChange = (rows, cols) => {
+    saveToHistory();
     setGridSize({ rows, cols });
   };
 
+  const handleBackgroundColorChange = (color) => {
+    saveToHistory();
+    setBackgroundColor(color);
+  };
+
   const handleAddTextOverlay = (text, style) => {
+    saveToHistory();
     const newOverlay = {
       id: Date.now(),
       text,
@@ -193,7 +276,13 @@ const BannerMaker = () => {
   };
 
   const handleRemoveTextOverlay = (id) => {
+    saveToHistory();
     setTextOverlays(prev => prev.filter(overlay => overlay.id !== id));
+  };
+
+  const handleExportSettingsChange = (settings) => {
+    saveToHistory();
+    setExportSettings(settings);
   };
 
   const handleExport = async () => {
@@ -252,7 +341,7 @@ const BannerMaker = () => {
         return (
           <ColorPicker 
             backgroundColor={backgroundColor}
-            onColorChange={setBackgroundColor}
+            onColorChange={handleBackgroundColorChange}
           />
         );
       case 'text':
@@ -267,7 +356,7 @@ const BannerMaker = () => {
         return (
           <ExportPanel 
             exportSettings={exportSettings}
-            onExportSettingsChange={setExportSettings}
+            onExportSettingsChange={handleExportSettingsChange}
             onExport={handleExport}
           />
         );
@@ -298,6 +387,16 @@ const BannerMaker = () => {
             )}
           </div>
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleUndo}
+              disabled={currentHistoryIndex <= 0}
+              title="Undo last action"
+            >
+              <UndoIcon className="h-4 w-4" />
+            </Button>
+            <Separator orientation="vertical" className="h-6" />
             <Button
               variant="outline"
               size="sm"
@@ -455,7 +554,7 @@ const BannerMaker = () => {
 
           {/* Canvas Container */}
           <div className="flex-1 flex items-center justify-center p-6">
-            <Card className="p-4 bg-white shadow-lg">
+            <div className="bg-white shadow-lg rounded-lg p-4">
               <CanvasPreview
                 ref={canvasRef}
                 fabricCanvasRef={fabricCanvasRef}
@@ -466,7 +565,7 @@ const BannerMaker = () => {
                 canvasSize={canvasSize}
                 zoomLevel={zoomLevel}
               />
-            </Card>
+            </div>
           </div>
         </div>
 
@@ -491,7 +590,7 @@ const BannerMaker = () => {
               <div className="flex items-center space-x-2">
                 <div 
                   className="w-8 h-8 rounded border-2 border-gray-300"
-                  style={{ backgroundColor }}
+                  style={{ backgroundColor: backgroundColor === 'transparent' ? '#ffffff' : backgroundColor }}
                 />
                 <span className="text-sm text-gray-600">{backgroundColor}</span>
               </div>
