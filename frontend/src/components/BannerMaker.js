@@ -129,12 +129,26 @@ const BannerMaker = () => {
   const handleSaveProject = async () => {
     if (!currentProject) return;
     
+    // Validate data before saving
+    if (!gridSize || !gridSize.rows || !gridSize.cols) {
+      console.warn('Invalid grid size, skipping save');
+      return;
+    }
+    
+    if (gridSize.rows < 1 || gridSize.rows > 6 || gridSize.cols < 1 || gridSize.cols > 6) {
+      console.warn('Grid size out of bounds, skipping save');
+      return;
+    }
+    
     setIsSaving(true);
     try {
       const updateData = {
         images: images.map(img => img.id).filter(Boolean),
-        grid_size: gridSize,
-        background_color: backgroundColor,
+        grid_size: {
+          rows: Math.max(1, Math.min(6, gridSize.rows)),
+          cols: Math.max(1, Math.min(6, gridSize.cols))
+        },
+        background_color: backgroundColor || '#ffffff',
         text_overlays: textOverlays.map(overlay => ({
           id: overlay.id,
           text: overlay.text,
@@ -142,9 +156,9 @@ const BannerMaker = () => {
           position: overlay.position
         })),
         export_settings: {
-          format: exportSettings.format,
-          quality: exportSettings.quality,
-          resolution: exportSettings.resolution
+          format: exportSettings.format || 'png',
+          quality: Math.max(10, Math.min(100, exportSettings.quality || 90)),
+          resolution: exportSettings.resolution || '2K'
         }
       };
       
