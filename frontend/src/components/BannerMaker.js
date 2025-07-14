@@ -347,7 +347,12 @@ const BannerMaker = () => {
               <AlertCircleIcon className="h-5 w-5 text-red-500" />
               <div>
                 <p className="text-sm text-red-800 font-medium">Error</p>
-                <p className="text-sm text-red-700">{projectError || exportError}</p>
+                <p className="text-sm text-red-700">
+                  {typeof (projectError || exportError) === 'string' 
+                    ? (projectError || exportError)
+                    : 'An error occurred. Please try again.'
+                  }
+                </p>
               </div>
               <Button
                 variant="ghost"
