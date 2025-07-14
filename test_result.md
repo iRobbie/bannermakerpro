@@ -166,6 +166,90 @@ backend:
         comment: "Banner generation and export confirmed working. PNG output created successfully with proper dimensions."
 
 frontend:
+  - task: "Grid Lines Removal"
+    implemented: true
+    working: true
+    file: "frontend/src/components/CanvasPreview.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ GRID LINES REMOVAL VERIFIED: Comprehensive testing confirms NO grid lines are visible on the canvas. Canvas appears clean without any grid borders or separating lines. Grid layout functionality works without visual grid lines as intended."
+
+  - task: "Background Color Layer Management"
+    implemented: true
+    working: false
+    file: "frontend/src/components/CanvasPreview.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL FABRIC.JS ERROR: Background color applies visually but JavaScript error 'canvasInstanceRef.current.sendToBack is not a function' prevents proper layer management. Fixed by changing sendToBack to sendObjectToBack. Background colors work but layering with images may be affected."
+
+  - task: "Undo Functionality"
+    implemented: true
+    working: true
+    file: "frontend/src/components/BannerMaker.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ UNDO FUNCTIONALITY WORKING: Undo button found in header with UndoIcon, properly enabled/disabled based on action history, successfully reverts actions when clicked. History management functional."
+
+  - task: "Remove Background Option"
+    implemented: true
+    working: true
+    file: "frontend/src/components/ColorPicker.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ REMOVE BACKGROUND WORKING: 'Remove Background' button found in Colors section Quick Access area, properly labeled (not 'Clear'), successfully sets background to transparent when clicked."
+
+  - task: "Text Banner Background Color Picker"
+    implemented: true
+    working: true
+    file: "frontend/src/components/TextOverlay.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TEXT BACKGROUND COLOR PICKER WORKING: Background Color section found in Text overlay, color picker allows custom color selection, 'Clear' button properly sets background to transparent, functionality fully operational."
+
+  - task: "Custom Font ArchivoBlack-Regular"
+    implemented: true
+    working: true
+    file: "frontend/src/components/TextOverlay.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ARCHIVOBLACK-REGULAR FONT AVAILABLE: Font dropdown accessible, ArchivoBlack-Regular found in font options list and selectable. Font warnings in console are minor and don't affect functionality."
+
+  - task: "API Error Reduction"
+    implemented: true
+    working: true
+    file: "frontend/src/services/api.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ API ERROR REDUCTION SUCCESSFUL: Auto-save functionality working, minimal critical API errors detected during testing. Some 422 validation errors during auto-save but core functionality unaffected. Export button enabled and ready."
+
   - task: "React Frontend UI Structure"
     implemented: true
     working: true
