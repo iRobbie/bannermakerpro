@@ -209,7 +209,7 @@ const ColorPicker = ({ backgroundColor, onColorChange }) => {
             className="flex items-center space-x-2"
           >
             <div className="w-4 h-4 bg-gray-200 rounded opacity-50" />
-            <span>Clear</span>
+            <span>Remove Background</span>
           </Button>
         </div>
       </div>
