@@ -183,7 +183,7 @@ const CanvasPreview = forwardRef(({
           // Ensure background stays in back
           const bgRect = canvas.getObjects().find(obj => obj.isBackgroundRect);
           if (bgRect) {
-            canvas.sendToBack(bgRect);
+            canvas.sendObjectToBack(bgRect);
           }
           
           canvas.renderAll();
