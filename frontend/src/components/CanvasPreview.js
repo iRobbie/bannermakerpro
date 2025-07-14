@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { Canvas, FabricImage, Line, Textbox } from 'fabric';
+import { Canvas, FabricImage, Textbox, Rect } from 'fabric';
 
 const CanvasPreview = forwardRef(({ 
   images, 
@@ -29,7 +29,7 @@ const CanvasPreview = forwardRef(({
         const canvas = new Canvas(canvasElementRef.current, {
           width: canvasSize.width,
           height: canvasSize.height,
-          backgroundColor: backgroundColor,
+          backgroundColor: backgroundColor === 'transparent' ? null : backgroundColor,
           preserveObjectStacking: true,
           selection: true
         });
@@ -60,7 +60,7 @@ const CanvasPreview = forwardRef(({
         console.error('Error initializing canvas:', error);
       }
     }
-  }, [canvasSize, fabricCanvasRef, backgroundColor]);
+  }, [canvasSize, fabricCanvasRef]);
 
   // Update canvas size
   useEffect(() => {
@@ -77,30 +77,56 @@ const CanvasPreview = forwardRef(({
     }
   }, [canvasSize]);
 
-  // Update background color
+  // Update background color - ensure it stays in the back
   useEffect(() => {
     if (canvasInstanceRef.current) {
       try {
-        // Use the new API for Fabric.js v6
-        canvasInstanceRef.current.backgroundColor = backgroundColor;
+        // Remove existing background rectangle
+        const objects = canvasInstanceRef.current.getObjects();
+        objects.forEach(obj => {
+          if (obj.isBackgroundRect) {
+            canvasInstanceRef.current.remove(obj);
+          }
+        });
+
+        // Set canvas background
+        if (backgroundColor === 'transparent') {
+          canvasInstanceRef.current.backgroundColor = null;
+        } else {
+          // Create a background rectangle to ensure proper layering
+          const bgRect = new Rect({
+            left: 0,
+            top: 0,
+            width: canvasSize.width,
+            height: canvasSize.height,
+            fill: backgroundColor,
+            selectable: false,
+            evented: false,
+            isBackgroundRect: true
+          });
+          
+          canvasInstanceRef.current.add(bgRect);
+          canvasInstanceRef.current.sendToBack(bgRect);
+        }
+        
         canvasInstanceRef.current.renderAll();
       } catch (error) {
         console.error('Error setting background color:', error);
       }
     }
-  }, [backgroundColor]);
+  }, [backgroundColor, canvasSize]);
 
-  // Update images and grid layout
+  // Update images and grid layout WITHOUT grid lines
   useEffect(() => {
     if (!canvasInstanceRef.current) return;
 
     const canvas = canvasInstanceRef.current;
     
     try {
-      // Clear existing images (but keep text overlays)
+      // Clear existing images only (keep background and text)
       const objects = canvas.getObjects();
       objects.forEach(obj => {
-        if (obj.type === 'image' || obj.isGrid) {
+        if (obj.type === 'image') {
           canvas.remove(obj);
         }
       });
@@ -110,28 +136,7 @@ const CanvasPreview = forwardRef(({
       const cellHeight = canvasSize.height / gridSize.rows;
       const totalCells = gridSize.rows * gridSize.cols;
 
-      // Add grid lines for visual reference
-      for (let i = 1; i < gridSize.cols; i++) {
-        const line = new Line([i * cellWidth, 0, i * cellWidth, canvasSize.height], {
-          stroke: '#e5e7eb',
-          strokeWidth: 1,
-          selectable: false,
-          evented: false,
-          isGrid: true
-        });
-        canvas.add(line);
-      }
-
-      for (let i = 1; i < gridSize.rows; i++) {
-        const line = new Line([0, i * cellHeight, canvasSize.width, i * cellHeight], {
-          stroke: '#e5e7eb',
-          strokeWidth: 1,
-          selectable: false,
-          evented: false,
-          isGrid: true
-        });
-        canvas.add(line);
-      }
+      // NO GRID LINES - Removed all grid line generation code
 
       // Add images to grid
       images.slice(0, totalCells).forEach((image, index) => {
@@ -174,6 +179,13 @@ const CanvasPreview = forwardRef(({
           });
 
           canvas.add(fabricImage);
+          
+          // Ensure background stays in back
+          const bgRect = canvas.getObjects().find(obj => obj.isBackgroundRect);
+          if (bgRect) {
+            canvas.sendToBack(bgRect);
+          }
+          
           canvas.renderAll();
         }).catch((error) => {
           console.error('Error loading image:', image.src, error);
@@ -225,6 +237,12 @@ const CanvasPreview = forwardRef(({
         });
 
         canvas.add(textObj);
+        
+        // Ensure background stays in back
+        const bgRect = canvas.getObjects().find(obj => obj.isBackgroundRect);
+        if (bgRect) {
+          canvas.sendToBack(bgRect);
+        }
       });
 
       canvas.renderAll();
@@ -248,7 +266,7 @@ const CanvasPreview = forwardRef(({
   return (
     <div className="relative">
       <div 
-        className="border border-gray-300 rounded-lg overflow-hidden shadow-inner bg-white"
+        className="rounded-lg overflow-hidden bg-white"
         style={{
           width: canvasSize.width,
           height: canvasSize.height,
