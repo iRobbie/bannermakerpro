@@ -231,7 +231,7 @@ const TextOverlay = ({ textOverlays, onAddTextOverlay, onRemoveTextOverlay }) =>
           {/* Background Color */}
           <div>
             <Label className="text-sm font-medium text-gray-700 block mb-2">Background Color</Label>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 mb-2">
               <Input
                 type="color"
                 value={textStyle.backgroundColor === 'transparent' ? '#ffffff' : textStyle.backgroundColor}
@@ -244,15 +244,19 @@ const TextOverlay = ({ textOverlays, onAddTextOverlay, onRemoveTextOverlay }) =>
                 value={textStyle.backgroundColor}
                 onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
                 className="flex-1 font-mono text-sm"
-                placeholder="transparent"
+                placeholder="transparent or #ffffff"
               />
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleStyleChange('backgroundColor', 'transparent')}
+                className="px-2"
               >
                 Clear
               </Button>
+            </div>
+            <div className="text-xs text-gray-500">
+              Use transparent for no background or choose a color
             </div>
           </div>
 
