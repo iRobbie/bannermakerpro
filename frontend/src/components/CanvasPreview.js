@@ -106,7 +106,7 @@ const CanvasPreview = forwardRef(({
           });
           
           canvasInstanceRef.current.add(bgRect);
-          canvasInstanceRef.current.sendToBack(bgRect);
+          canvasInstanceRef.current.sendObjectToBack(bgRect);
         }
         
         canvasInstanceRef.current.renderAll();
